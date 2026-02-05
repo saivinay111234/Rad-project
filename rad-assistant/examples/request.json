@@ -1,0 +1,23 @@
+{
+  "findings": [
+    {
+      "location": "right lower lobe",
+      "type": "opacity",
+      "severity": "moderate",
+      "additional_details": "Air bronchograms noted"
+    },
+    {
+      "location": "cardiac silhouette",
+      "type": "cardiomegaly",
+      "severity": "mild",
+      "additional_details": null
+    }
+  ],
+  "clinical_context": {
+    "patient_info": "65-year-old male",
+    "clinical_presentation": "Fever and cough for 3 days",
+    "relevant_history": "History of COPD, former smoker"
+  },
+  "modality": "Chest X-ray",
+  "view": "PA & lateral"
+}

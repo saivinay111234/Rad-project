@@ -1,0 +1,23 @@
+{
+  "findings": [
+    {
+      "location": "left upper lobe",
+      "type": "nodule",
+      "severity": "mild",
+      "additional_details": "Well-defined, approximately 1.5 cm"
+    },
+    {
+      "location": "bilateral lung bases",
+      "type": "atelectasis",
+      "severity": "mild",
+      "additional_details": "Small subsegmental"
+    }
+  ],
+  "clinical_context": {
+    "patient_info": "72-year-old female",
+    "clinical_presentation": "Routine screening, no acute symptoms",
+    "relevant_history": "History of hypertension, previous smoking"
+  },
+  "modality": "CT Chest",
+  "view": "Axial with coronal and sagittal reformats"
+}

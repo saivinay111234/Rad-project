@@ -1,0 +1,27 @@
+{
+    "findings": [
+        {
+            "location": "Left lower lobe",
+            "type": "consolidation",
+            "severity": "moderate",
+            "additional_details": "Air bronchograms present."
+        }
+    ],
+    "clinical_context": {
+        "patient_info": "50-year-old female",
+        "clinical_presentation": "Fever, cough, shortness of breath",
+        "relevant_history": "None"
+    },
+    "modality": "Chest X-ray",
+    "view": "PA and Lateral",
+    "cv_summary": {
+        "modality": "DX",
+        "summary": "AI detected opacity in LLL.",
+        "regions": [
+            {
+                "label": "Opacity",
+                "score": 0.88
+            }
+        ]
+    }
+}

@@ -1,0 +1,29 @@
+{
+  "findings": [
+    {
+      "location": "right acute angle",
+      "type": "effusion",
+      "severity": "mild",
+      "additional_details": "Less than 1 cm in size"
+    },
+    {
+      "location": "left costophrenic angle",
+      "type": "effusion",
+      "severity": "moderate",
+      "additional_details": "Layering appearance, approximately 2-3 cm"
+    },
+    {
+      "location": "central mediastinum",
+      "type": "enlargement",
+      "severity": "moderate",
+      "additional_details": "Hilum is prominent"
+    }
+  ],
+  "clinical_context": {
+    "patient_info": "58-year-old male",
+    "clinical_presentation": "Shortness of breath, fatigue",
+    "relevant_history": "History of congestive heart failure, diabetes"
+  },
+  "modality": "Chest X-ray",
+  "view": "Frontal and lateral"
+}
