@@ -628,3 +628,82 @@ class StudyOrchestrationResponse(BaseModel):
     generation_metadata: Dict[str, Any]
 
 
+# --- Phase 11: Unique Differentiators ---
+
+class FatigueTimeSlot(BaseModel):
+    """Error concentration in a specific time window."""
+    hour_of_day: int = Field(..., ge=0, le=23)
+    day_of_week: int = Field(..., ge=0, le=6)
+    error_count: int
+    total_events: int
+    error_rate: float
+    fatigue_risk_score: float
+    label: str
+
+
+class FatigueReport(BaseModel):
+    """Fatigue analysis result for a radiologist."""
+    radiologist_id: str
+    analysis_period_days: int
+    total_events_analyzed: int
+    total_errors: int
+    overall_error_rate: float
+    high_risk_slots: List[FatigueTimeSlot]
+    peer_review_recommended: bool
+    summary: str
+    generated_at: str  # ISO timestamp
+
+
+class FollowupReminderOut(BaseModel):
+    """API response shape for a scheduled reminder."""
+    reminder_id: str
+    study_id: str
+    finding_id: Optional[str] = None
+    followup_type: str
+    followup_modality: Optional[str] = None
+    followup_text: str
+    due_date: Optional[str] = None  # ISO timestamp
+    status: str = "pending"
+    created_at: str  # ISO timestamp
+
+
+class CMEQuestion(BaseModel):
+    """Multiple-choice question for a CME case."""
+    question_id: str
+    question_text: str
+    options: Dict[str, str]
+    correct_answer: str
+    explanation: str
+    learning_objective: str
+
+
+class CMECase(BaseModel):
+    """Generated CME case."""
+    case_id: str
+    radiologist_id: str
+    title: str
+    case_description: str
+    clinical_context: str
+    questions: List[CMEQuestion]
+    learning_objectives: List[str]
+    credit_points: float = 0.5
+    passing_score: float = 0.7
+    generated_at: str  # ISO timestamp
+    source_digest_period: Optional[str] = None
+
+
+class CMEGradeResult(BaseModel):
+    """Result of grading a CME case attempt."""
+    case_id: str
+    radiologist_id: str
+    submitted_answers: Dict[str, str]
+    correct_answers: Dict[str, str]
+    num_questions: int
+    num_correct: int
+    score: float
+    passed: bool
+    credits_earned: float
+    feedback: List[str]
+    graded_at: str  # ISO timestamp
+
+

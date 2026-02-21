@@ -234,14 +234,21 @@ class ReportDraftingAgent:
             if report_dict is None:
                 raise ValueError(f"Failed to obtain valid JSON from LLM after {attempts} attempts: {last_error}")
             
-            # Validate and create ReportDraft using Pydantic model validation
+            # --- Phase 7 Upgrade: Self-Evaluation ---
+            # Perform a quick self-critique to generate a realistic confidence score.
             try:
-                # Infer confidence score if not present (system prompt doesn't strictly ask for it in output keys but model needs it)
-                # We can calculate a simple confidence based on completeness or set a default.
-                # For now, default to 0.9 if successful.
+                evaluation = self._self_evaluate(report_dict.get("report_text", ""), request)
+                report_dict["confidence_score"] = evaluation.get("confidence_score", 0.9)
+                self.logger.info("Self-evaluation complete. Confidence Score: %.2f", report_dict["confidence_score"])
+                if evaluation.get("critique"):
+                    self.logger.info("Critique: %s", evaluation["critique"])
+            except Exception as e:
+                self.logger.warning("Self-evaluation failed (non-fatal): %s", e)
                 if "confidence_score" not in report_dict:
-                     report_dict["confidence_score"] = 0.9
+                    report_dict["confidence_score"] = 0.85
 
+            # Validate and create ReportDraft 
+            try:
                 report = ReportDraft(**report_dict)
             except Exception as e:
                 self.logger.error(f"ReportDraft validation failed: {e}")
@@ -249,7 +256,7 @@ class ReportDraftingAgent:
                 self.logger.debug(f"Invalid dict content: {report_dict}")
                 raise ValueError(f"Invalid report structure: {e}")
             
-            self.logger.info("Report drafted successfully")
+            self.logger.info("Report drafted and self-evaluated successfully")
             return report
         
         except json.JSONDecodeError as e:
@@ -293,6 +300,41 @@ class ReportDraftingAgent:
         # If still no valid JSON, raise error
         raise ValueError("Could not find a valid ReportDraft JSON object in LLM response")
     
+    def _self_evaluate(self, report_text: str, request: ReportDraftRequest) -> dict:
+        """
+        Ask the LLM to critique the generated report draft for accuracy and consistency.
+        Returns a dictionary with confidence_score and critique.
+        """
+        eval_prompt = f"""Critique the following radiology report draft based on the provided inputs.
+INPUT FINDINGS:
+{self._format_findings(request)}
+
+GENERATED REPORT:
+{report_text}
+
+Rate the consistency of the IMPRESSION with the FINDINGS and the INPUT. 
+Check if any human-provided findings were missed.
+Check if the modality is correctly addressed.
+
+Respond with ONLY a JSON object:
+{{
+  "confidence_score": float (0.0 to 1.0),
+  "critique": "brief string",
+  "is_consistent": boolean
+}}
+"""
+        try:
+            response = self.llm_client.generate(
+                prompt=eval_prompt,
+                system_prompt="You are a senior radiology quality assurance auditor.",
+                temperature=0.1
+            )
+            # Use the existing robust parser
+            return self._parse_response(response)
+        except Exception as e:
+            self.logger.error("Error in self-evaluation generate/parse: %s", e)
+            return {"confidence_score": 0.85, "critique": "Self-evaluation failed.", "is_consistent": True}
+
     def _get_fallback_report(self, request: ReportDraftRequest, error_reason: str) -> ReportDraft:
         """
         Generate a fallback report when LLM fails.

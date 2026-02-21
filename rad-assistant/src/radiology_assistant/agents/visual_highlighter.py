@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, FrozenSet
 import numpy as np
 
 from ..models import CVHighlightRequest, CVHighlightResult, CVRegionHighlight
@@ -9,6 +9,10 @@ from ..cv.models import ChestXrayAnomalyModel
 from ..cv.postprocess import regions_to_models
 from ..cv.visualize import make_heatmap_overlay, encode_png_base64
 
+# Only chest X-ray modalities are supported by the TorchXRayVision DenseNet121 model.
+# CT, MR, US, NM require different models and preprocessing pipelines.
+SUPPORTED_CV_MODALITIES: FrozenSet[str] = frozenset({"CR", "DX", "XR"})
+
 class VisualHighlightingAgent:
     def __init__(self, model: ChestXrayAnomalyModel, logger: Optional[logging.Logger] = None):
         self.model = model
@@ -17,7 +21,22 @@ class VisualHighlightingAgent:
     def highlight(self, request: CVHighlightRequest, image_bytes: bytes) -> CVHighlightResult:
         """
         Run the visual highlighting pipeline.
+
+        Raises:
+            ValueError: If the imaging modality is not supported by the CV model.
+            InvalidDICOMError: If the image cannot be parsed as DICOM or a standard image format.
         """
+        # --- Modality Guard ---
+        # Only chest X-ray modalities work with TorchXRayVision DenseNet121.
+        # Return a clean error instead of running garbage inference on unsupported modalities.
+        modality_upper = (request.modality or "").upper()
+        if modality_upper not in SUPPORTED_CV_MODALITIES:
+            raise ValueError(
+                f"Modality '{request.modality}' is not supported for CV analysis. "
+                f"Supported modalities: {sorted(SUPPORTED_CV_MODALITIES)}. "
+                "CT, MR, US, and NM require a different model — contact the integration team."
+            )
+
         self.logger.info(f"Starting visual highlighting for modality={request.modality}")
 
         # 1. Load Image

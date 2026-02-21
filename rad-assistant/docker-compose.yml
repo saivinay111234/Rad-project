@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/rad_assistant
+      - REDIS_URL=redis://redis:6379/0
+      - LLM_PROVIDER=gemini
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - rad-network
+
+  celery_worker:
+    build: .
+    command: celery -A radiology_assistant.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/rad_assistant
+      - REDIS_URL=redis://redis:6379/0
+      - LLM_PROVIDER=gemini
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - db
+      - redis
+    networks:
+      - rad-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=rad_assistant
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - rad-network
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - rad-network
+
+networks:
+  rad-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

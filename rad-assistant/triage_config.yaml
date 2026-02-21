@@ -1,0 +1,48 @@
+# Radiology Assistant: Worklist Triage Configuration
+
+# Maximum items to process in a single triage batch
+max_batch_size: 15
+
+# Enable LLM-powered natural language explanation for priority choices
+enable_llm_explanation: true
+
+# Modality/Body-Part Specific Thresholds
+# Score ranges 0.0 - 1.0
+# Score > critical_threshold -> CRITICAL
+# Score > high_threshold -> HIGH
+# Score > low_threshold -> ROUTINE
+# Otherwise -> LOW
+thresholds:
+  - modality_group: XR
+    body_region: Chest
+    critical_threshold: 0.92
+    high_threshold: 0.75
+    low_threshold: 0.40
+    min_confidence: 0.50
+
+  - modality_group: CT
+    body_region: Head
+    critical_threshold: 0.85
+    high_threshold: 0.65
+    low_threshold: 0.30
+    min_confidence: 0.40
+
+  - modality_group: MR
+    body_region: Brain
+    critical_threshold: 0.90
+    high_threshold: 0.70
+    low_threshold: 0.40
+    min_confidence: 0.50
+
+  - modality_group: US
+    body_region: Abdomen
+    critical_threshold: 0.80
+    high_threshold: 0.60
+    low_threshold: 0.30
+    min_confidence: 0.40
+
+# Map modality/region to specific CV models for scoring fallback
+model_mapping:
+  "XR/Chest": "densenet121-res224-all"
+  "CT/Head": "emergency-head-ct-v1"
+  "MR/Brain": "neuro-stroke-v2"
