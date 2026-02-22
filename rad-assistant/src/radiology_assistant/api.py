@@ -55,15 +55,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan handler: initialize DB tables and pre-warm agents on startup."""
-    # 1. Setup structured logging
-    setup_logging()
     logger.info("API startup: initializing database")
     
-    # 2. Init DB
+    # 1. Init DB
     init_db()  # Create tables if they don't exist (idempotent)
-    
-    # 3. Setup Prometheus metrics
-    setup_metrics(app)
     
     logger.info("API startup: pre-initializing ReportDraftingAgent")
     try:
@@ -73,7 +68,6 @@ async def lifespan(app: FastAPI):
         logger.exception("Failed to pre-initialize agent on startup")
         raise
     yield
-    logger.info("API shutdown")
     logger.info("API shutdown")
 
 
@@ -86,6 +80,10 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+# Initialize observability (Logging + Metrics) before middleware stack is finalized
+setup_logging()
+setup_metrics(app)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
